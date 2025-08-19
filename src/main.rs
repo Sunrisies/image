@@ -13,9 +13,9 @@ fn main() {
     // 示例文本
     let examples = vec![
         ("Hello, World!", "English"),
-        ("你好，世界！", "Chinese"),
-        ("1234567890", "Numbers"),
-        ("Hello, 世界123！", "Mixed"),
+        // ("你好，世界！", "Chinese"),
+        // ("1234567890", "Numbers"),
+        // ("Hello, 世界123！", "Mixed"),
     ];
 
     for (text, description) in examples {
@@ -35,7 +35,7 @@ fn main() {
         println!("Rendering: {}", description);
         render_text(&mut img, &font, text, fg_color, w, h);
         let filename = format!(
-            "output_{}.png",
+            "output_{}.webp",
             description.to_lowercase().replace(" ", "_")
         );
         img.save(&filename).unwrap();
@@ -94,10 +94,11 @@ fn render_text(img: &mut RgbaImage, font: &FontRef, text: &str, fg_color: [u8; 3
                     if px < w && py < h {
                         // 应用抗锯齿
                         let alpha = (c * 255.0) as u8;
-                        if alpha > 0 {
-                            let pixel = Rgba([fg_color[0], fg_color[1], fg_color[2], alpha]);
-                            img.put_pixel(px, py, pixel);
-                        }
+                        println!("alpha = {},c:{}", alpha, c);
+                        // if alpha > 0 {
+                        //     let pixel = Rgba([fg_color[0], fg_color[1], fg_color[2], alpha]);
+                        //     img.put_pixel(px, py, pixel);
+                        // }
                     }
                 }
             });
