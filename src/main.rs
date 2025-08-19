@@ -1,35 +1,54 @@
 use ab_glyph::ScaleFont;
-use ab_glyph::{Font, FontRef, Glyph, PxScale, point};
+use ab_glyph::{Font, FontRef, PxScale, point};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rand::Rng;
+
 fn main() {
-    let (w, h) = (400, 300);
-    let mut img: RgbaImage = ImageBuffer::new(w, h);
-
-    // 创建随机渐变背景
-    let color1 = generate_random_color();
-    let color2 = generate_random_color();
-    create_gradient_background(&mut img, color1, color2);
-
-    // 获取背景中心区域的平均颜色
-    let bg_center_color = sample_center_color(&img, w, h);
-
-    // 根据背景色选择合适的前景色
-    let fg_color = choose_contrasting_color(bg_center_color);
-
     // 内嵌字体 - 替换为您的实际字体文件
     let font = FontRef::try_from_slice(include_bytes!("../fonts/PinRuShouXieTi-1.ttf"))
         .expect("Failed to load font");
 
-    // 文本内容
-    let text = "asiasjkdga撒把收到";
+    // let font = FontRef::try_from_slice(include_bytes!("../fonts/NotoSansSC-Regular.ttf"))
+    //     .expect("Failed to load font");
+    // 示例文本
+    let examples = vec![
+        ("Hello, World!", "English"),
+        ("你好，世界！", "Chinese"),
+        ("1234567890", "Numbers"),
+        ("Hello, 世界123！", "Mixed"),
+    ];
+
+    for (text, description) in examples {
+        let (w, h) = (400, 300);
+        let mut img: RgbaImage = ImageBuffer::new(w, h);
+
+        // 创建随机渐变背景
+        let color1 = generate_random_color();
+        let color2 = generate_random_color();
+        create_gradient_background(&mut img, color1, color2);
+
+        // 获取背景中心区域的平均颜色
+        let bg_center_color = sample_center_color(&img, w, h);
+
+        // 根据背景色选择合适的前景色
+        let fg_color = choose_contrasting_color(bg_center_color);
+        println!("Rendering: {}", description);
+        render_text(&mut img, &font, text, fg_color, w, h);
+        let filename = format!(
+            "output_{}.png",
+            description.to_lowercase().replace(" ", "_")
+        );
+        img.save(&filename).unwrap();
+        println!("Saved to {}", filename);
+    }
+}
+
+fn render_text(img: &mut RgbaImage, font: &FontRef, text: &str, fg_color: [u8; 3], w: u32, h: u32) {
     let scale = PxScale::from(48.0);
     let scaled_font = font.as_scaled(scale);
-
+    println!("scaled_font.h_advance(font.glyph_id('a')) = {}", text);
     // 计算文本的包围盒
     let (mut min_x, mut min_y, mut max_x, mut max_y) = (f32::MAX, f32::MAX, f32::MIN, f32::MIN);
-
-    // 预计算文本的包围盒
     let mut x_pos = 0.0;
     for c in text.chars() {
         let glyph_id = font.glyph_id(c);
@@ -50,18 +69,11 @@ fn main() {
     // 计算文本的实际宽度和高度
     let text_width = max_x - min_x;
     let text_height = max_y - min_y;
-    println!("text_width:{:?}", text_width);
-    println!(
-        "text_height:{:?},min_y:{:?}， scaled_font.ascent():  {:?}",
-        text_height,
-        min_y,
-        scaled_font.ascent()
-    );
 
     // 计算起始位置（真正居中）
     let start_x = (w as f32 - text_width) / 2.0 - min_x;
     let start_y = (h as f32 - text_height) / 2.0 + scaled_font.ascent();
-    println!("start_y:{:?}", start_y);
+
     // 渲染每个字符
     let mut x_pos = start_x;
     for c in text.chars() {
@@ -94,46 +106,12 @@ fn main() {
         // 前进到下一个字符位置
         x_pos += scaled_font.h_advance(glyph_id);
     }
-    // for c in text.chars() {
-    //     let glyph_id = font.glyph_id(c);
-    //     let mut glyph = glyph_id.with_scale(scale);
-    //     glyph.position = point(x_pos, start_y);
-
-    //     if let Some(outlined) = font.outline_glyph(glyph) {
-    //         let bounds = outlined.px_bounds();
-    //         outlined.draw(|x, y, c| {
-    //             let px = x as i32 + bounds.min.x as i32;
-    //             let py = y as i32 + bounds.min.y as i32;
-
-    //             if px >= 0 && py >= 0 {
-    //                 let px = px as u32;
-    //                 let py = py as u32;
-
-    //                 if px < w && py < h {
-    //                     // 应用抗锯齿
-    //                     let alpha = (c * 255.0) as u8;
-    //                     if alpha > 0 {
-    //                         let pixel = Rgba([fg_color[0], fg_color[1], fg_color[2], alpha]);
-    //                         img.put_pixel(px, py, pixel);
-    //                     }
-    //                 }
-    //             }
-    //         });
-    //     }
-
-    //     // 前进到下一个字符位置
-    //     x_pos += scaled_font.h_advance(glyph_id);
-    // }
-
-    // 保存图像
-    img.save("output.png").unwrap();
-    println!("saved to output.png");
 }
 
 /// 生成随机颜色
 fn generate_random_color() -> [u8; 3] {
     let mut rng = rand::rng();
-    [rng.r#random(), rng.r#random(), rng.r#random()]
+    [rng.random(), rng.random(), rng.random()]
 }
 
 /// 创建渐变背景
