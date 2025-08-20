@@ -105,7 +105,6 @@ fn render_text(img: &mut RgbaImage, font: &FontRef, text: &str, fg_color: [u8; 3
                     if px < w && py < h {
                         // 应用抗锯齿
                         let alpha = (c * 255.0) as u8;
-                        println!("alpha = {},c:{}", alpha, c);
                         if alpha > 0 {
                             let pixel = Rgba([fg_color[0], fg_color[1], fg_color[2], alpha]);
                             img.put_pixel(px, py, pixel);
@@ -190,15 +189,6 @@ fn choose_contrasting_color(bg_color: [u8; 3]) -> [u8; 3] {
         [255, 255, 255] // 浅色文本 (白色)
     }
 }
-
-// fn main() {
-//     // 创建一个 SVG 文档
-//     let doc = create_svg_document();
-
-//     // 保存为 SVG 文件
-//     svg::save("output.svg", &doc).unwrap();
-//     println!("Saved to output.svg");
-// }
 
 fn create_svg_document() {
     let (w, h) = (400, 300);
