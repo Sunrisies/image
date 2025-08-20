@@ -3,11 +3,7 @@ use ab_glyph::{Font, FontRef, PxScale, point};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rand::Rng;
 use svg::Document;
-use svg::node::Text as TextNode;
-use svg::node::element::Text as TextElement;
-use svg::node::element::path::Data;
-use svg::node::element::{Group, Text};
-use svg::node::element::{LinearGradient, Path, Rectangle, Stop};
+use svg::node::element::{LinearGradient, Rectangle, Stop, Text as TextElement};
 
 fn main() {
     create_webp();
