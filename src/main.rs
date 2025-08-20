@@ -205,14 +205,26 @@ fn create_svg_document() {
 
     // 创建随机渐变背景
     let (color1, color2) = generate_random_colors();
+    // 计算背景的平均颜色
+    let avg_color = average_color(color1, color2);
+
+    // 选择对比度高的字体颜色
+    let fg_color = choose_contrasting_color(avg_color);
     // 创建 SVG 文档
     let mut document = Document::new()
         .set("width", w)
         .set("height", h)
         .set("viewBox", (0, 0, w, h));
 
-    // 添加渐变定义
-    let gradient = LinearGradient::new()
+    // 添加一个渐变背景
+    let gradient = Rectangle::new()
+        .set("x", 0)
+        .set("y", 0)
+        .set("width", 400)
+        .set("height", 300)
+        .set("fill", "url(#gradient)");
+
+    let gradient_def = LinearGradient::new()
         .set("id", "gradient")
         .set("x1", "0%")
         .set("y1", "0%")
@@ -226,33 +238,20 @@ fn create_svg_document() {
             "stop-color",
             format!("#{:02X}{:02X}{:02X}", color2[0], color2[1], color2[2]),
         ));
-    // let gradient_def = svg::node::element::LinearGradient::new()
-    //     .set("id", "gradient")
-    //     .add(
-    //         svg::node::element::Stop::new()
-    //             .set("offset", "0%")
-    //             .set("stop-color", "#ff0000"),
-    //     )
-    //     .add(
-    //         svg::node::element::Stop::new()
-    //             .set("offset", "100%")
-    //             .set("stop-color", "#0000ff"),
-    //     );
-    let background = Rectangle::new()
-        .set("width", "100%")
-        .set("height", "100%")
-        .set("fill", "url(#gradient)");
 
-    // document = document.add(gradient);
-    // .add(background);
+    document = document.add(gradient_def).add(gradient);
 
     // 添加文本
     let text = TextElement::new("Hello, 世界123！")
-        .set("x", 50)
-        .set("y", 150)
+        .set("x", w / 2)
+        .set("y", h / 2)
         .set("font-family", "Arial")
         .set("font-size", 48)
-        .set("fill", "white");
+        .set(
+            "fill",
+            format!("#{:02X}{:02X}{:02X}", fg_color[0], fg_color[1], fg_color[2]),
+        )
+        .set("text-anchor", "middle");
 
     document = document.add(text);
 
@@ -268,4 +267,13 @@ fn generate_random_colors() -> ([u8; 3], [u8; 3]) {
         [rng.random(), rng.random(), rng.random()],
         [rng.random(), rng.random(), rng.random()],
     )
+}
+
+/// 计算两个颜色的平均值
+fn average_color(color1: [u8; 3], color2: [u8; 3]) -> [u8; 3] {
+    [
+        (color1[0] as u16 + color2[0] as u16) as u8 / 2,
+        (color1[1] as u16 + color2[1] as u16) as u8 / 2,
+        (color1[2] as u16 + color2[2] as u16) as u8 / 2,
+    ]
 }
