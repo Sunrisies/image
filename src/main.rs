@@ -2,8 +2,19 @@ use ab_glyph::ScaleFont;
 use ab_glyph::{Font, FontRef, PxScale, point};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use rand::Rng;
+use svg::Document;
+use svg::node::Text as TextNode;
+use svg::node::element::Text as TextElement;
+use svg::node::element::path::Data;
+use svg::node::element::{Group, Text};
+use svg::node::element::{LinearGradient, Path, Rectangle, Stop};
 
 fn main() {
+    create_webp();
+    create_svg_document();
+}
+
+fn create_webp() {
     // 内嵌字体 - 替换为您的实际字体文件
     let font = FontRef::try_from_slice(include_bytes!("../fonts/PinRuShouXieTi-1.ttf"))
         .expect("Failed to load font");
@@ -95,10 +106,10 @@ fn render_text(img: &mut RgbaImage, font: &FontRef, text: &str, fg_color: [u8; 3
                         // 应用抗锯齿
                         let alpha = (c * 255.0) as u8;
                         println!("alpha = {},c:{}", alpha, c);
-                        // if alpha > 0 {
-                        //     let pixel = Rgba([fg_color[0], fg_color[1], fg_color[2], alpha]);
-                        //     img.put_pixel(px, py, pixel);
-                        // }
+                        if alpha > 0 {
+                            let pixel = Rgba([fg_color[0], fg_color[1], fg_color[2], alpha]);
+                            img.put_pixel(px, py, pixel);
+                        }
                     }
                 }
             });
@@ -178,4 +189,83 @@ fn choose_contrasting_color(bg_color: [u8; 3]) -> [u8; 3] {
     } else {
         [255, 255, 255] // 浅色文本 (白色)
     }
+}
+
+// fn main() {
+//     // 创建一个 SVG 文档
+//     let doc = create_svg_document();
+
+//     // 保存为 SVG 文件
+//     svg::save("output.svg", &doc).unwrap();
+//     println!("Saved to output.svg");
+// }
+
+fn create_svg_document() {
+    let (w, h) = (400, 300);
+
+    // 创建随机渐变背景
+    let (color1, color2) = generate_random_colors();
+    // 创建 SVG 文档
+    let mut document = Document::new()
+        .set("width", w)
+        .set("height", h)
+        .set("viewBox", (0, 0, w, h));
+
+    // 添加渐变定义
+    let gradient = LinearGradient::new()
+        .set("id", "gradient")
+        .set("x1", "0%")
+        .set("y1", "0%")
+        .set("x2", "100%")
+        .set("y2", "100%")
+        .add(Stop::new().set("offset", "0%").set(
+            "stop-color",
+            format!("#{:02X}{:02X}{:02X}", color1[0], color1[1], color1[2]),
+        ))
+        .add(Stop::new().set("offset", "100%").set(
+            "stop-color",
+            format!("#{:02X}{:02X}{:02X}", color2[0], color2[1], color2[2]),
+        ));
+    // let gradient_def = svg::node::element::LinearGradient::new()
+    //     .set("id", "gradient")
+    //     .add(
+    //         svg::node::element::Stop::new()
+    //             .set("offset", "0%")
+    //             .set("stop-color", "#ff0000"),
+    //     )
+    //     .add(
+    //         svg::node::element::Stop::new()
+    //             .set("offset", "100%")
+    //             .set("stop-color", "#0000ff"),
+    //     );
+    let background = Rectangle::new()
+        .set("width", "100%")
+        .set("height", "100%")
+        .set("fill", "url(#gradient)");
+
+    // document = document.add(gradient);
+    // .add(background);
+
+    // 添加文本
+    let text = TextElement::new("Hello, 世界123！")
+        .set("x", 50)
+        .set("y", 150)
+        .set("font-family", "Arial")
+        .set("font-size", 48)
+        .set("fill", "white");
+
+    document = document.add(text);
+
+    // document
+    svg::save("output.svg", &document).unwrap();
+    println!("Saved to output.svg");
+}
+
+/// 生成随机颜色
+fn generate_random_colors() -> ([u8; 3], [u8; 3]) {
+    let mut rng = rand::rng();
+    (
+        [rng.random(), rng.random(), rng.random()],
+        [rng.random(), rng.random(), rng.random()],
+    )
 }

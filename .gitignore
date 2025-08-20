@@ -1,1 +1,7 @@
 /target
+*.png
+*.jpg
+*.webp
+*.gif
+*.ico
+*.svg   
