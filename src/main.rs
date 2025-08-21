@@ -187,7 +187,9 @@ fn choose_contrasting_color(bg_color: [u8; 3]) -> [u8; 3] {
 }
 
 fn create_svg_document() {
-    let (w, h) = (400, 300);
+    let font_size = 48.0;
+    let text = "Hello, 世界1212ddsds是的撒1阿德21123！";
+    let (w, h) = calculate_text_size(text, font_size);
 
     // 创建随机渐变背景
     let (color1, color2) = generate_random_colors();
@@ -206,8 +208,8 @@ fn create_svg_document() {
     let gradient = Rectangle::new()
         .set("x", 0)
         .set("y", 0)
-        .set("width", 400)
-        .set("height", 300)
+        .set("width", w)
+        .set("height", h)
         .set("fill", "url(#gradient)");
 
     let gradient_def = LinearGradient::new()
@@ -228,11 +230,11 @@ fn create_svg_document() {
     document = document.add(gradient_def).add(gradient);
 
     // 添加文本
-    let text = TextElement::new("Hello, 世界123！")
-        .set("x", w / 2)
-        .set("y", h / 2)
+    let text = TextElement::new(text)
+        .set("x", w / 2.0)
+        .set("y", (h / 2.0) + (font_size / 2.0))
         .set("font-family", "Arial")
-        .set("font-size", 48)
+        .set("font-size", font_size)
         .set(
             "fill",
             format!("#{:02X}{:02X}{:02X}", fg_color[0], fg_color[1], fg_color[2]),
@@ -262,4 +264,17 @@ fn average_color(color1: [u8; 3], color2: [u8; 3]) -> [u8; 3] {
         (color1[1] as u16 + color2[1] as u16) as u8 / 2,
         (color1[2] as u16 + color2[2] as u16) as u8 / 2,
     ]
+}
+
+fn calculate_text_size(text: &str, font_size: f32) -> (f32, f32) {
+    // 预估文本的宽度和高度
+    // 这里假设每个字符的宽度为字体大小的 0.7 倍，高度为字体大小的 1.5 倍
+    let estimated_width = (text.chars().count() as f32 * font_size * 0.65) as f32;
+    let estimated_height = (font_size * 1.5) as f32;
+    // 添加一些边距
+    let margin: f32 = 20.0;
+    (
+        estimated_width + margin * 2.0,
+        estimated_height + margin * 2.0,
+    )
 }
